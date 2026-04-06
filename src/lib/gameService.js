@@ -109,3 +109,23 @@ export async function getAllSegments(sessionId) {
   if (error) throw error
   return data
 }
+
+// Escucha cambios en tiempo real en una sesión
+export function subscribeToSession(sessionId, onUpdate) {
+  const channel = supabase
+    .channel(`session-${sessionId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'sessions',
+        filter: `id=eq.${sessionId}`,
+      },
+      (payload) => onUpdate(payload.new)
+    )
+    .subscribe()
+
+  // Retorna función para cancelar la suscripción
+  return () => supabase.removeChannel(channel)
+}

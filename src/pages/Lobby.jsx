@@ -12,6 +12,7 @@ export default function Lobby({ onJoin }) {
     setError("")
     try {
       const session = await createSession(segments)
+      // El creador siempre empieza en el turno 0
       onJoin(session, 0)
     } catch (e) {
       setError("Error creando sesión: " + e.message)
@@ -26,6 +27,11 @@ export default function Lobby({ onJoin }) {
     setError("")
     try {
       const session = await getSessionByCode(code)
+      if (session.status === 'finished') {
+        setError("Esta partida ya terminó")
+        return
+      }
+      // El jugador que se une toma el siguiente turno disponible
       onJoin(session, session.current_turn)
     } catch (e) {
       setError("Sesión no encontrada")
@@ -42,7 +48,6 @@ export default function Lobby({ onJoin }) {
           <p className="text-slate-500 mt-1">Cadáver Exquisito colaborativo</p>
         </div>
 
-        {/* Crear sesión */}
         <div className="flex flex-col gap-3 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
           <h2 className="font-semibold text-indigo-800">Crear nueva partida</h2>
           <label className="text-sm text-slate-600">
@@ -72,7 +77,6 @@ export default function Lobby({ onJoin }) {
           </button>
         </div>
 
-        {/* Unirse a sesión */}
         <div className="flex flex-col gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
           <h2 className="font-semibold text-slate-700">Unirse a partida existente</h2>
           <input
